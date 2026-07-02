@@ -7,6 +7,98 @@ import { Summary, fmtIDRCompact, fmtUSDT, fmtNumber, fmtDateLabel, DailyAggregat
 interface VolumeSummaryProps {
   summary: Summary;
   dailyData: DailyAggregate[];
+  isLoading?: boolean;
+}
+
+/* Reusable skeleton block */
+function Sk({ className }: { className?: string }) {
+  return <div className={`skeleton rounded ${className ?? ''}`} />;
+}
+
+function StatsCardSkeleton() {
+  return (
+    <div className="relative overflow-hidden rounded-xl border border-border bg-card shadow-sm">
+      <div className="skeleton h-0.5 w-full rounded-none" />
+      <div className="px-5 py-4 flex flex-col gap-3">
+        <div className="flex items-center justify-between">
+          <Sk className="h-2.5 w-20" />
+          <Sk className="h-4 w-4 rounded-sm" />
+        </div>
+        <Sk className="h-7 w-28" />
+        <Sk className="h-2.5 w-24" />
+        <Sk className="mt-1 h-2.5 w-16" />
+      </div>
+    </div>
+  );
+}
+
+function SidebarSkeleton() {
+  return (
+    <div className="flex flex-col gap-4">
+      {Array.from({ length: 3 }).map((_, i) => (
+        <div key={i} className="rounded-xl border border-border bg-card p-5 flex flex-col gap-3">
+          <Sk className="h-2.5 w-24" />
+          <div className="space-y-2.5 mt-1">
+            {Array.from({ length: 4 }).map((_, j) => (
+              <div key={j} className="flex items-center justify-between">
+                <Sk className="h-2.5 w-20" />
+                <Sk className="h-2.5 w-16" />
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function InsightsSkeleton() {
+  return (
+    <div className="rounded-xl border border-border bg-card p-5">
+      <Sk className="h-2.5 w-28 mb-4" />
+      <div className="space-y-3">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <div key={i} className="rounded-lg border border-border/50 bg-border/20 p-3 flex flex-col gap-2">
+            <Sk className="h-2.5 w-20" />
+            <Sk className="h-2.5 w-full" />
+            <Sk className="h-2.5 w-3/4" />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function VolumeSummarySkeleton() {
+  return (
+    <section>
+      <div className="grid gap-8 xl:grid-cols-[1fr_280px]">
+        <div className="space-y-8">
+          <div>
+            <div className="mb-4 flex items-center gap-4">
+              <Sk className="h-2.5 w-32" />
+              <div className="h-px flex-1 bg-border" />
+            </div>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              {Array.from({ length: 4 }).map((_, i) => <StatsCardSkeleton key={i} />)}
+            </div>
+          </div>
+          <div>
+            <div className="mb-4 flex items-center gap-4">
+              <Sk className="h-2.5 w-32" />
+              <div className="h-px flex-1 bg-border" />
+            </div>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              {Array.from({ length: 4 }).map((_, i) => <StatsCardSkeleton key={i} />)}
+            </div>
+          </div>
+          <InsightsSkeleton />
+          <div className="xl:hidden"><SidebarSkeleton /></div>
+        </div>
+        <div className="hidden xl:block"><SidebarSkeleton /></div>
+      </div>
+    </section>
+  );
 }
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
@@ -249,7 +341,8 @@ function InsightsPanel({ summary, dailyData }: VolumeSummaryProps) {
   );
 }
 
-export function VolumeSummary({ summary, dailyData }: VolumeSummaryProps) {
+export function VolumeSummary({ summary, dailyData, isLoading }: VolumeSummaryProps) {
+  if (isLoading) return <VolumeSummarySkeleton />;
   const profitMarginPct = (summary.profitMarginBps / 100).toFixed(2);
   const avgProfitPerDay = summary.activeDays > 0 ? summary.totalProfit / summary.activeDays : 0;
 

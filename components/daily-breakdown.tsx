@@ -7,6 +7,57 @@ import { cn } from '@/lib/utils';
 
 interface DailyBreakdownProps {
   dailyData: DailyAggregate[];
+  isLoading?: boolean;
+}
+
+function DailyBreakdownSkeleton() {
+  return (
+    <section>
+      <div className="mb-5 flex items-center gap-4">
+        <div className="skeleton h-2.5 w-32 rounded" />
+        <div className="h-px flex-1 bg-border" />
+        <div className="skeleton h-2.5 w-36 rounded" />
+      </div>
+      <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-border bg-secondary/40">
+                <th className="w-8 px-3 py-3 sm:px-4" />
+                {['Date', 'USDT', 'Gross IDR', 'Profit'].map(h => (
+                  <th key={h} className="px-3 py-3 sm:px-4">
+                    <div className="skeleton h-2 w-12 rounded mx-auto" />
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {Array.from({ length: 8 }).map((_, i) => (
+                <tr key={i} className="border-b border-border/60">
+                  <td className="px-3 py-3.5 sm:px-4">
+                    <div className="skeleton h-3.5 w-3.5 rounded" />
+                  </td>
+                  <td className="px-3 py-3.5 sm:px-4">
+                    <div className="skeleton h-3.5 w-28 rounded mb-1.5" />
+                    <div className="skeleton h-2.5 w-20 rounded" />
+                  </td>
+                  <td className="px-3 py-3.5 text-right sm:px-4">
+                    <div className="skeleton h-3.5 w-16 rounded ml-auto" />
+                  </td>
+                  <td className="hidden px-4 py-3.5 md:table-cell text-right">
+                    <div className="skeleton h-3.5 w-20 rounded ml-auto" />
+                  </td>
+                  <td className="px-3 py-3.5 text-right sm:px-4">
+                    <div className="skeleton h-3.5 w-18 rounded ml-auto" />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  );
 }
 
 function fmtDate(dateStr: string): string {
@@ -59,7 +110,9 @@ function TxSubRow({ tx }: { tx: Transaction }) {
   );
 }
 
-export function DailyBreakdown({ dailyData }: DailyBreakdownProps) {
+export function DailyBreakdown({ dailyData, isLoading }: DailyBreakdownProps) {
+  if (isLoading) return <DailyBreakdownSkeleton />;
+
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
 
   const toggle = (date: string) =>
