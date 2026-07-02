@@ -24,6 +24,7 @@ interface DataContextValue {
   sheetConfigured: boolean;
   lastSynced: Date | null;
   isSyncing: boolean;
+  isLoading: boolean;
   loadCSV: (csvString: string, fileName: string) => void;
   resetToEmpty: () => void;
 }
@@ -53,6 +54,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   const [sheetConfigured, setSheetConfigured] = useState(false);
   const [lastSynced, setLastSynced]           = useState<Date | null>(null);
   const [isSyncing, setIsSyncing]             = useState(false);
+  const [isLoading, setIsLoading]             = useState(true);
 
   // Keep a ref so the interval closure always sees the latest source
   const sourceRef = useRef(source);
@@ -115,6 +117,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       }
     } finally {
       setIsSyncing(false);
+      if (isInitial) setIsLoading(false);
     }
   }, []);
 
@@ -152,7 +155,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     <DataContext.Provider value={{
       transactions, summary, dailyData,
       source, fileName, sheetConfigured,
-      lastSynced, isSyncing,
+      lastSynced, isSyncing, isLoading,
       loadCSV, resetToEmpty,
     }}>
       {children}

@@ -10,9 +10,9 @@ import { DailyBreakdown } from '@/components/daily-breakdown';
 import { Database, Upload } from 'lucide-react';
 
 export default function DashboardPage() {
-  const { summary, dailyData, source, isSyncing } = useData();
+  const { summary, dailyData, source, isLoading } = useData();
 
-  const isEmpty = source === 'empty' && !isSyncing;
+  const isEmpty = source === 'empty' && !isLoading;
 
   return (
     <AppShell>
@@ -39,11 +39,11 @@ export default function DashboardPage() {
         </main>
       ) : (
         <>
-          <HeroKpi summary={summary} />
+          <HeroKpi summary={summary} isLoading={isLoading} />
           <main className="mx-auto w-full max-w-screen-2xl flex-1 space-y-8 px-4 py-6 sm:space-y-12 sm:px-6 sm:py-10 lg:px-10">
-            <VolumeSummary summary={summary} dailyData={dailyData} />
-            <PerformanceCharts dailyData={dailyData} />
-            <DailyBreakdown dailyData={dailyData} />
+            <VolumeSummary summary={summary} dailyData={dailyData} isLoading={isLoading} />
+            <PerformanceCharts dailyData={dailyData} isLoading={isLoading} />
+            <DailyBreakdown dailyData={dailyData} isLoading={isLoading} />
           </main>
         </>
       )}

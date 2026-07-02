@@ -193,4 +193,22 @@
   .sheen:hover::after {
     transform: translateX(100%);
   }
+
+  /* Skeleton shimmer */
+  .skeleton {
+    background: linear-gradient(
+      90deg,
+      var(--muted) 25%,
+      color-mix(in oklch, var(--muted) 70%, var(--background)) 50%,
+      var(--muted) 75%
+    );
+    background-size: 200% 100%;
+    animation: skeleton-shimmer 1.6s ease-in-out infinite;
+    border-radius: calc(var(--radius) * 0.5);
+  }
+
+  @keyframes skeleton-shimmer {
+    0%   { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
 }

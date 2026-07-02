@@ -2,6 +2,33 @@ import { Summary, fmtIDRCompact, fmtUSDT, fmtNumber } from '@/lib/data-utils';
 
 interface HeroKpiProps {
   summary: Summary;
+  isLoading?: boolean;
+}
+
+function KpiSkeleton() {
+  return (
+    <div className="border-b border-border bg-card/50">
+      <div className="mx-auto max-w-screen-2xl px-4 sm:px-6 lg:px-10">
+        <div className="grid grid-cols-2 lg:grid-cols-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div
+              key={i}
+              className={[
+                'flex flex-col gap-3 px-4 py-5 sm:px-6 sm:py-6',
+                i % 2 === 0 ? 'border-r border-border' : '',
+                i < 2 ? 'border-b border-border lg:border-b-0' : '',
+                i < 3 ? 'lg:border-r lg:border-border' : 'lg:border-r-0',
+              ].join(' ')}
+            >
+              <div className="skeleton h-2.5 w-24 rounded" />
+              <div className="skeleton h-9 w-36 rounded" />
+              <div className="skeleton h-2.5 w-40 rounded" />
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
 }
 
 interface KpiItem {
@@ -11,7 +38,9 @@ interface KpiItem {
   accent?: 'profit' | 'loss' | 'volume' | 'neutral';
 }
 
-export function HeroKpi({ summary }: HeroKpiProps) {
+export function HeroKpi({ summary, isLoading }: HeroKpiProps) {
+  if (isLoading) return <KpiSkeleton />;
+
   const profitMarginPct = (summary.profitMarginBps / 100).toFixed(2);
 
   const kpis: KpiItem[] = [

@@ -9,6 +9,17 @@ import { useTheme } from '@/components/theme-provider';
 
 interface PerformanceChartsProps {
   dailyData: DailyAggregate[];
+  isLoading?: boolean;
+}
+
+function ChartSkeleton({ height = 260 }: { height?: number }) {
+  return (
+    <div className="rounded-xl border border-border bg-card px-4 py-4 shadow-sm sm:px-6 sm:py-5">
+      <div className="skeleton mb-1.5 h-3.5 w-40 rounded" />
+      <div className="skeleton mb-5 h-2.5 w-64 rounded" />
+      <div className="skeleton w-full rounded-lg" style={{ height }} />
+    </div>
+  );
 }
 
 const PALETTE = {
@@ -71,7 +82,24 @@ function withCumulative(data: DailyAggregate[]) {
   return data.map(d => { cum += d.profit; return { ...d, cumProfit: cum }; });
 }
 
-export function PerformanceCharts({ dailyData }: PerformanceChartsProps) {
+export function PerformanceCharts({ dailyData, isLoading }: PerformanceChartsProps) {
+  if (isLoading) {
+    return (
+      <section>
+        <div className="mb-5 flex items-center gap-4">
+          <div className="skeleton h-2.5 w-36 rounded" />
+          <div className="h-px flex-1 bg-border" />
+        </div>
+        <div className="mb-4">
+          <ChartSkeleton height={260} />
+        </div>
+        <div className="grid gap-4 lg:grid-cols-[3fr_2fr]">
+          <ChartSkeleton height={220} />
+          <ChartSkeleton height={220} />
+        </div>
+      </section>
+    );
+  }
   const { theme } = useTheme();
   const p = PALETTE[theme];
 
