@@ -14,7 +14,7 @@ export function Logo({ size = 32, className }: LogoProps) {
   return (
     <Image
       src={src}
-      alt="PT Aliansi Koin Global"
+      alt="OTC Crypto Logo"
       width={size}
       height={size}
       className={className}

@@ -30,16 +30,16 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <p className="text-sm font-bold tracking-tight text-foreground">
                 OTC <span className="font-normal opacity-60">CRYPTO</span>
               </p>
-              <p className="text-[9px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
+              {/*<p className="text-[9px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
                 PT Aliansi Koin Global
-              </p>
+              </p>*/}
             </div>
           </Link>
 
           {/* Centre: report identity */}
           <div className="hidden flex-col items-center md:flex">
             <p className="text-xs font-bold uppercase tracking-widest text-foreground">
-              Simpllo &mdash; MNC Report
+              OTC Crypto &mdash; Report
             </p>
             {source === 'sheet' ? (
               <p className="text-[10px] text-otc-volume">Live &mdash; Google Sheet</p>
@@ -88,7 +88,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <div className="flex items-center gap-2.5">
             <Logo size={20} />
             <span className="text-xs text-muted-foreground">
-              PT Aliansi Koin Global &middot; Simpllo MNC
+              OTC Crypto &middot; All Rights Reserved
             </span>
           </div>
           <span className="text-xs font-medium uppercase tracking-widest text-muted-foreground/40">
