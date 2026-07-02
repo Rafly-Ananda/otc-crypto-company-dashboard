@@ -110,7 +110,7 @@ type UploadState = 'idle' | 'dragging' | 'parsed' | 'error';
 
 export default function UploadPage() {
   const router = useRouter();
-  const { loadCSV, resetToSample, source, fileName, sheetConfigured } = useData();
+  const { loadCSV, resetToEmpty, source, fileName, sheetConfigured } = useData();
   const inputRef = useRef<HTMLInputElement>(null);
 
   const [state, setState]           = useState<UploadState>('idle');
@@ -253,11 +253,11 @@ export default function UploadPage() {
               </div>
             </div>
             <button
-              onClick={() => { resetToSample(); }}
+              onClick={() => { resetToEmpty(); }}
               className="flex items-center gap-1.5 rounded-md border border-border px-3 py-1.5 text-[11px] font-medium text-muted-foreground transition-colors hover:border-foreground/30 hover:text-foreground"
             >
               <RotateCcw size={11} />
-              Reset to sample
+              Clear data
             </button>
           </div>
         )}
@@ -304,19 +304,13 @@ export default function UploadPage() {
           </div>
         ) : null}
 
-        {/* Validation messages */}
-        {validation && (validation.errors.length > 0 || validation.warnings.length > 0) && (
+        {/* Validation messages — only shown in error state (errors only, no warnings here) */}
+        {state === 'error' && validation && validation.errors.length > 0 && (
           <div className="mt-5 space-y-2">
             {validation.errors.map((e, i) => (
               <div key={i} className="flex items-start gap-2.5 rounded-lg border border-otc-loss/30 bg-otc-loss/10 px-3.5 py-3">
                 <AlertTriangle size={14} className="mt-0.5 shrink-0 text-otc-loss" />
                 <p className="text-xs text-foreground">{e}</p>
-              </div>
-            ))}
-            {validation.warnings.map((w, i) => (
-              <div key={i} className="flex items-start gap-2.5 rounded-lg border border-otc-neutral/30 bg-otc-neutral/10 px-3.5 py-3">
-                <Info size={14} className="mt-0.5 shrink-0 text-otc-neutral" />
-                <p className="text-xs text-foreground">{w}</p>
               </div>
             ))}
           </div>
@@ -326,7 +320,7 @@ export default function UploadPage() {
         {state === 'parsed' && validation && (
           <div className="space-y-6">
 
-            {/* File info bar */}
+            {/* 1. Success banner */}
             <div className="flex items-center justify-between rounded-lg border border-otc-profit/30 bg-otc-profit/10 px-4 py-3">
               <div className="flex items-center gap-2.5">
                 <CheckCircle2 size={15} className="text-otc-profit shrink-0" />
@@ -346,7 +340,7 @@ export default function UploadPage() {
               </button>
             </div>
 
-            {/* Warnings */}
+            {/* 2. Warnings (below success, not before it) */}
             {validation.warnings.length > 0 && (
               <div className="space-y-2">
                 {validation.warnings.map((w, i) => (

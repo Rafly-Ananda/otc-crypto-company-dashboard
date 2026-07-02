@@ -5,19 +5,75 @@ import { usePathname } from 'next/navigation';
 import { Logo } from '@/components/logo';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { useData } from '@/components/data-provider';
-import { Upload, LayoutDashboard } from 'lucide-react';
+import { Upload, LayoutDashboard, RefreshCw, CheckCircle2, AlertTriangle } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 const NAV = [
   { href: '/',       label: 'Dashboard', icon: LayoutDashboard },
   { href: '/upload', label: 'Upload Data', icon: Upload },
 ];
 
+function useSyncedFlash(lastSynced: Date | null) {
+  const [showFlash, setShowFlash] = useState(false);
+  const [prevSynced, setPrevSynced] = useState<Date | null>(null);
+  useEffect(() => {
+    if (lastSynced && lastSynced !== prevSynced) {
+      setPrevSynced(lastSynced);
+      setShowFlash(true);
+      const t = setTimeout(() => setShowFlash(false), 3000);
+      return () => clearTimeout(t);
+    }
+  }, [lastSynced, prevSynced]);
+  return showFlash;
+}
+
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const { summary, source, fileName } = useData();
+  const { summary, source, fileName, lastSynced, isSyncing, sheetConfigured } = useData();
+  const showSyncedFlash = useSyncedFlash(lastSynced);
 
   return (
     <div className="flex min-h-screen flex-col bg-background grid-bg">
+
+      {/* ── Sync status bar ─────────────────────────────────────────────── */}
+      {sheetConfigured && (
+        <div className={`flex items-center justify-between px-4 py-1.5 text-[11px] sm:px-6 lg:px-10 transition-colors duration-500 ${
+          source === 'empty'
+            ? 'bg-otc-loss/10 border-b border-otc-loss/20'
+            : showSyncedFlash
+            ? 'bg-otc-profit/10 border-b border-otc-profit/20'
+            : 'bg-muted/40 border-b border-border'
+        }`}>
+          <div className="flex items-center gap-2">
+            {source === 'empty' ? (
+              <>
+                <AlertTriangle size={11} className="text-otc-loss shrink-0" />
+                <span className="text-otc-loss font-medium">Google Sheet is empty — no data to display.</span>
+              </>
+            ) : isSyncing ? (
+              <>
+                <RefreshCw size={11} className="text-muted-foreground animate-spin shrink-0" />
+                <span className="text-muted-foreground">Syncing with Google Sheet…</span>
+              </>
+            ) : showSyncedFlash ? (
+              <>
+                <CheckCircle2 size={11} className="text-otc-profit shrink-0" />
+                <span className="text-otc-profit font-medium">Synced successfully</span>
+              </>
+            ) : (
+              <>
+                <RefreshCw size={11} className="text-muted-foreground/60 shrink-0" />
+                <span className="text-muted-foreground/70">Live — Google Sheet</span>
+              </>
+            )}
+          </div>
+          {lastSynced && (
+            <span className="text-muted-foreground/50 tabular-nums">
+              Last sync: {lastSynced.toLocaleTimeString()}
+            </span>
+          )}
+        </div>
+      )}
 
       {/* ── Header ──────────────────────────────────────────────────────── */}
       <header className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-xl">
@@ -42,15 +98,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               Simpllo &mdash; MNC Report
             </p>
             {source === 'sheet' ? (
-              <p className="text-[10px] text-otc-volume">Live &mdash; Google Sheet</p>
+              <p className="text-[10px] text-otc-volume">
+                {summary.dateRange.start && summary.dateRange.end
+                  ? `${summary.dateRange.start} \u2192 ${summary.dateRange.end}`
+                  : 'Live \u2014 Google Sheet'}
+              </p>
             ) : source === 'uploaded' && fileName ? (
               <p className="text-[10px] text-otc-profit">{fileName}</p>
             ) : (
-              <p className="text-[10px] text-muted-foreground">
-                {summary.dateRange.start && summary.dateRange.end
-                  ? `${summary.dateRange.start} \u2192 ${summary.dateRange.end}`
-                  : 'Sample data'}
-              </p>
+              <p className="text-[10px] text-muted-foreground">No data</p>
             )}
           </div>
 
