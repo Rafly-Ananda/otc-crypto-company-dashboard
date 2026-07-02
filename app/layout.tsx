@@ -12,7 +12,7 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  title: 'Simpllo OTC — MNC Dashboard',
+  title: 'OTC Crypto — Dashboard',
   description: 'OTC USDT→IDR transaction dashboard for MNC counterparty',
   generator: 'v0.app',
   icons: {

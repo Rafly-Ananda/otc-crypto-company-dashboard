@@ -238,7 +238,7 @@ export default function UploadPage() {
             Upload CSV File
           </h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            Upload a transaction CSV in the Simpllo MNC format. Data is stored in your browser session and used to populate the dashboard.
+            Upload a transaction CSV in the OTC Crypto format. Data is stored in your browser session and used to populate the dashboard.
           </p>
         </div>
 
