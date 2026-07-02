@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import { Logo } from '@/components/logo';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { useData } from '@/components/data-provider';
+import { SyncStatusBanner } from '@/components/sync-status-banner';
 import { Upload, LayoutDashboard } from 'lucide-react';
 
 const NAV = [
@@ -78,6 +79,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </div>
         </div>
       </header>
+
+      {/* ── Sync status banner ──────────────────────────────────────────── */}
+      <SyncStatusBanner />
 
       {/* ── Page content ────────────────────────────────────────────────── */}
       {children}

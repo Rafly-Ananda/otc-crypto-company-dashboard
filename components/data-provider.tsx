@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import {
   parseCSVData,
   calculateSummary,
@@ -10,25 +10,7 @@ import {
   DailyAggregate,
 } from '@/lib/data-utils';
 
-/* ── Raw sample data (same as original page) ────────────────────────────── */
-const SAMPLE_CSV = `Date,Name,Order,Rate,USDT,IDR,Settlement,Profit,NonExpected,Remark
-2006-05-19,MNC,Sell,17670,500000,8835000000,8835000000,0,0,Sell #1 Mandiri
-2026-05-19,MNC,Sell,17680,499196,8825785280,8820793320,4991960,19412640,Sell #2 Mandiri. Non-exp: Rp2;052;620 PT Bahari + Rp10;000;000 min balance
-2026-05-20,MNC,Sell,17710,200000,3542000000,3539000000,3000000,0,Wd 1 Mandiri AKG @ 17;710
-2026-05-20,MNC,Sell,17609.80564,797500,14043819998,14036000000,7819998,0,Wd 2 & 3 Mandiri AKG. Rate slippage noted.
-2026-05-22,MNC,Sell,17635,1000000,17635000000,17610000000,25000000,0,Block sell 1M USDT to MNC AKG
-2026-05-25,MNC,Sell,17600,1190000,20944000000,20896400000,47600000,0,
-2026-05-26,MNC,Sell,17610,1200000,21132000000,21084000000,48000000,0,
-2026-06-03,MNC,Sell,17830,911000,16243130000,16188470000,54660000,0,
-2026-06-05,MNC,Sell,18000,1000000,18000000000,17930000000,70000000,0,
-2026-06-05,MNC,Sell,17995,1000000,17995000000,17930000000,65000000,0,
-2026-06-08,MNC,Sell,18060,2140163,38651343780,38565737260,85606520,0,
-2026-06-18,MNC,Sell,17840,1138397,20309002480,20263466600,45535880,0,
-2026-06-23,mnc,Sell,17815,3029210,53965376150,53859353800,106022350,0,
-2026-06-24,MNC,Sell,17890,948384,16966589760,16938138240,28451520,0,
-2026-06-25,MNC,Sell,17905,3610996,64654883380,64546553500,108329880,0,`;
-
-export type DataSource = 'sample' | 'uploaded' | 'sheet';
+export type DataSource = 'sheet' | 'uploaded' | 'empty';
 
 interface DataContextValue {
   transactions: Transaction[];
@@ -36,9 +18,10 @@ interface DataContextValue {
   dailyData: DailyAggregate[];
   source: DataSource;
   fileName: string | null;
-  sheetConfigured: boolean;
+  syncing: boolean;
+  lastSyncTime: Date | null;
+  syncError: string | null;
   loadCSV: (csvString: string, fileName: string) => void;
-  resetToSample: () => void;
 }
 
 const DataContext = createContext<DataContextValue | null>(null);
@@ -50,56 +33,102 @@ export function useData() {
 }
 
 function buildDerivedData(csvString: string) {
-  const transactions = parseCSVData(csvString);
-  const summary      = calculateSummary(transactions);
-  const dailyData    = aggregateByDay(transactions);
-  return { transactions, summary, dailyData };
+  try {
+    const transactions = parseCSVData(csvString);
+    const summary = calculateSummary(transactions);
+    const dailyData = aggregateByDay(transactions);
+    return { transactions, summary, dailyData };
+  } catch {
+    return {
+      transactions: [],
+      summary: {
+        totalUSDAT: 0,
+        totalIDR: 0,
+        totalSettlement: 0,
+        totalProfit: 0,
+        totalNonExpected: 0,
+        profitMarginBps: 0,
+        dateRange: { start: '', end: '' },
+        tradingDays: 0,
+        totalOrders: 0,
+        averageRate: 0,
+      },
+      dailyData: [],
+    };
+  }
 }
 
-const SESSION_KEY_CSV  = 'otc-csv-data';
+const SESSION_KEY_CSV = 'otc-csv-data';
 const SESSION_KEY_NAME = 'otc-csv-filename';
+const POLL_INTERVAL_MS = parseInt(
+  typeof window !== 'undefined'
+    ? process.env.NEXT_PUBLIC_SHEET_SYNC_INTERVAL_MS ?? '10000'
+    : '10000',
+  10
+);
 
 export function DataProvider({ children }: { children: React.ReactNode }) {
-  const [source, setSource]           = useState<DataSource>('sample');
-  const [fileName, setFileName]       = useState<string | null>(null);
-  const [csvString, setCsvString]     = useState(SAMPLE_CSV);
-  const [sheetConfigured, setSheetConfigured] = useState(false);
+  const [source, setSource] = useState<DataSource>('empty');
+  const [fileName, setFileName] = useState<string | null>(null);
+  const [csvString, setCsvString] = useState('');
+  const [syncing, setSyncing] = useState(true);
+  const [lastSyncTime, setLastSyncTime] = useState<Date | null>(null);
+  const [syncError, setSyncError] = useState<string | null>(null);
 
-  // On mount: try fetching from Google Sheet first.
-  // Falls back to sessionStorage, then sample data.
-  useEffect(() => {
-    async function init() {
-      // 1. Try Google Sheet
-      try {
-        const res = await fetch('/api/sheet');
-        if (res.ok) {
-          const csv = await res.text();
-          if (csv.trim()) {
-            setCsvString(csv);
-            setSource('sheet');
-            setFileName('Google Sheet');
-            setSheetConfigured(true);
-            return;
-          }
+  // Fetch data from Google Sheet
+  const fetchFromSheet = useCallback(async () => {
+    setSyncing(true);
+    try {
+      const res = await fetch('/api/sheet');
+      if (res.ok) {
+        const csv = await res.text();
+        if (csv.trim()) {
+          setCsvString(csv);
+          setSource('sheet');
+          setFileName(null);
+          setLastSyncTime(new Date());
+          setSyncError(null);
+        } else {
+          setCsvString('');
+          setSource('empty');
+          setLastSyncTime(new Date());
+          setSyncError(null);
         }
-        if (res.status !== 503) {
-          // 503 means not configured — don't mark as configured
-          setSheetConfigured(true);
-        }
-      } catch {
-        // Network error or not configured — silently fall through
+      } else if (res.status === 503) {
+        setCsvString('');
+        setSource('empty');
+        setLastSyncTime(new Date());
+        setSyncError('Sheet not configured');
+      } else {
+        setSyncError(`Sync error: ${res.status}`);
       }
-
-      // 2. Fall back to sessionStorage
-      const stored     = sessionStorage.getItem(SESSION_KEY_CSV);
-      const storedName = sessionStorage.getItem(SESSION_KEY_NAME);
-      if (stored && storedName) {
-        setCsvString(stored);
-        setFileName(storedName);
-        setSource('uploaded');
-      }
+    } catch (err) {
+      setSyncError(
+        err instanceof Error ? err.message : 'Network error'
+      );
+    } finally {
+      setSyncing(false);
     }
-    init();
+  }, []);
+
+  // On mount: fetch immediately, then set up polling
+  useEffect(() => {
+    fetchFromSheet();
+    const interval = setInterval(fetchFromSheet, POLL_INTERVAL_MS);
+    return () => clearInterval(interval);
+  }, [fetchFromSheet]);
+
+  // Try to restore uploaded CSV from sessionStorage (override sheet if present)
+  useEffect(() => {
+    const stored = sessionStorage.getItem(SESSION_KEY_CSV);
+    const storedName = sessionStorage.getItem(SESSION_KEY_NAME);
+    if (stored && storedName) {
+      setCsvString(stored);
+      setFileName(storedName);
+      setSource('uploaded');
+      setLastSyncTime(null);
+      setSyncError(null);
+    }
   }, []);
 
   function loadCSV(csv: string, name: string) {
@@ -108,24 +137,25 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     setSource('uploaded');
     sessionStorage.setItem(SESSION_KEY_CSV, csv);
     sessionStorage.setItem(SESSION_KEY_NAME, name);
-  }
-
-  function resetToSample() {
-    setCsvString(SAMPLE_CSV);
-    setFileName(null);
-    setSource('sample');
-    sessionStorage.removeItem(SESSION_KEY_CSV);
-    sessionStorage.removeItem(SESSION_KEY_NAME);
+    setLastSyncTime(null);
   }
 
   const { transactions, summary, dailyData } = buildDerivedData(csvString);
 
   return (
-    <DataContext.Provider value={{
-      transactions, summary, dailyData,
-      source, fileName, sheetConfigured,
-      loadCSV, resetToSample,
-    }}>
+    <DataContext.Provider
+      value={{
+        transactions,
+        summary,
+        dailyData,
+        source,
+        fileName,
+        syncing,
+        lastSyncTime,
+        syncError,
+        loadCSV,
+      }}
+    >
       {children}
     </DataContext.Provider>
   );
