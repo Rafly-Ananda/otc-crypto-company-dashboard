@@ -253,14 +253,14 @@ export function NewEntryForm({ onClose }: Props) {
           <button
             onClick={handleSave}
             disabled={saving}
-            className="rounded-xl bg-otc-neutral px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition-opacity hover:opacity-90 disabled:opacity-50 dark:text-black"
+            className="cursor-pointer rounded-xl bg-foreground px-6 py-2.5 text-sm font-semibold text-background shadow-sm transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {saving ? 'Saving...' : 'Save entry'}
           </button>
           <button
             onClick={onClose}
             disabled={saving}
-            className="rounded-xl border border-border px-6 py-2.5 text-sm font-semibold uppercase tracking-widest text-muted-foreground transition-colors hover:border-foreground/30 hover:text-foreground disabled:opacity-50"
+            className="cursor-pointer rounded-xl border border-border px-6 py-2.5 text-sm font-semibold uppercase tracking-widest text-muted-foreground transition-colors hover:border-foreground/30 hover:text-foreground disabled:cursor-not-allowed disabled:opacity-50"
           >
             Cancel
           </button>
