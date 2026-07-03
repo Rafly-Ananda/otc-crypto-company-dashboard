@@ -27,6 +27,7 @@ interface DataContextValue {
   isLoading: boolean;
   loadCSV: (csvString: string, fileName: string) => void;
   resetToEmpty: () => void;
+  refetch: () => void;
 }
 
 const DataContext = createContext<DataContextValue | null>(null);
@@ -151,12 +152,14 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
 
   const { transactions, summary, dailyData } = buildDerivedData(csvString);
 
+  const refetch = useCallback(() => { fetchSheet(false); }, [fetchSheet]);
+
   return (
     <DataContext.Provider value={{
       transactions, summary, dailyData,
       source, fileName, sheetConfigured,
       lastSynced, isSyncing, isLoading,
-      loadCSV, resetToEmpty,
+      loadCSV, resetToEmpty, refetch,
     }}>
       {children}
     </DataContext.Provider>
