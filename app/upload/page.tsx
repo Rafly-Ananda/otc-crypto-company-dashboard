@@ -277,14 +277,14 @@ export default function UploadPage() {
               <button
                 onClick={handleExport}
                 disabled={exporting}
-                className="flex items-center gap-2 rounded-lg border border-border px-4 py-2 text-sm font-medium text-muted-foreground transition-colors hover:border-foreground/30 hover:text-foreground disabled:opacity-50"
+                className="flex cursor-pointer items-center gap-2 rounded-lg border border-border px-4 py-2 text-sm font-medium text-muted-foreground transition-colors hover:border-foreground/30 hover:text-foreground disabled:cursor-not-allowed disabled:opacity-50"
               >
                 <Download size={14} />
                 {exporting ? 'Exporting...' : 'Export CSV'}
               </button>
               <button
                 onClick={() => setShowEntry(true)}
-                className="flex items-center gap-2 rounded-lg bg-foreground px-4 py-2 text-sm font-semibold text-background transition-opacity hover:opacity-90"
+                className="flex cursor-pointer items-center gap-2 rounded-lg bg-foreground px-4 py-2 text-sm font-semibold text-background transition-opacity hover:opacity-90"
               >
                 <Plus size={14} />
                 New Entry
@@ -307,7 +307,7 @@ export default function UploadPage() {
             </div>
             <button
               onClick={() => { resetToEmpty(); }}
-              className="flex items-center gap-1.5 rounded-md border border-border px-3 py-1.5 text-[11px] font-medium text-muted-foreground transition-colors hover:border-foreground/30 hover:text-foreground"
+              className="flex cursor-pointer items-center gap-1.5 rounded-md border border-border px-3 py-1.5 text-[11px] font-medium text-muted-foreground transition-colors hover:border-foreground/30 hover:text-foreground"
             >
               <RotateCcw size={11} />
               Clear data
@@ -386,7 +386,7 @@ export default function UploadPage() {
               </div>
               <button
                 onClick={handleReset}
-                className="flex items-center gap-1 rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-foreground/10 hover:text-foreground"
+                className="flex cursor-pointer items-center gap-1 rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-foreground/10 hover:text-foreground"
                 aria-label="Remove file"
               >
                 <X size={14} />
@@ -443,7 +443,7 @@ export default function UploadPage() {
               <button
                 onClick={handleConfirm}
                 disabled={submitting}
-                className="flex items-center gap-2 rounded-lg bg-foreground px-5 py-2.5 text-sm font-semibold text-background transition-opacity hover:opacity-90 disabled:opacity-50"
+                className="flex cursor-pointer items-center gap-2 rounded-lg bg-foreground px-5 py-2.5 text-sm font-semibold text-background transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {submitting ? 'Saving...' : sheetConfigured ? 'Save to Sheet & Dashboard' : 'Load into Dashboard'}
                 {!submitting && <ChevronRight size={15} />}
@@ -451,7 +451,7 @@ export default function UploadPage() {
               <button
                 onClick={handleReset}
                 disabled={submitting}
-                className="rounded-lg border border-border px-5 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:border-foreground/30 hover:text-foreground disabled:opacity-50"
+                className="cursor-pointer rounded-lg border border-border px-5 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:border-foreground/30 hover:text-foreground disabled:cursor-not-allowed disabled:opacity-50"
               >
                 Cancel
               </button>
