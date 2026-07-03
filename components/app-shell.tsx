@@ -5,8 +5,7 @@ import { usePathname } from 'next/navigation';
 import { Logo } from '@/components/logo';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { useData } from '@/components/data-provider';
-import { NewEntryForm } from '@/components/new-entry-form';
-import { Upload, LayoutDashboard, RefreshCw, CheckCircle2, AlertTriangle, Plus } from 'lucide-react';
+import { Upload, LayoutDashboard, RefreshCw, CheckCircle2, AlertTriangle } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 const NAV = [
@@ -32,7 +31,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { summary, source, fileName, lastSynced, isSyncing, sheetConfigured } = useData();
   const showSyncedFlash = useSyncedFlash(lastSynced);
-  const [showEntry, setShowEntry] = useState(false);
+
 
   return (
     <div className="flex min-h-screen flex-col bg-background grid-bg">
@@ -112,7 +111,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             )}
           </div>
 
-          {/* Right: nav + new entry + theme toggle */}
+          {/* Right: nav + theme toggle */}
           <div className="flex items-center gap-1">
             {NAV.map(({ href, label, icon: Icon }) => {
               const active = pathname === href;
@@ -132,23 +131,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               );
             })}
             <div className="ml-1 h-4 w-px bg-border" />
-            {sheetConfigured && (
-              <button
-                onClick={() => setShowEntry(true)}
-                className="ml-1 flex items-center gap-1.5 rounded-lg bg-otc-neutral px-3 py-1.5 text-xs font-semibold text-white transition-opacity hover:opacity-90 dark:text-black"
-              >
-                <Plus size={13} />
-                <span className="hidden sm:inline">New Entry</span>
-              </button>
-            )}
-            <div className="ml-1 h-4 w-px bg-border" />
             <ThemeToggle />
           </div>
         </div>
       </header>
-
-      {/* ── New entry modal ─────────────────────────────────────────────── */}
-      {showEntry && <NewEntryForm onClose={() => setShowEntry(false)} />}
 
       {/* ── Page content ────────────────────────────────────────────────── */}
       {children}
