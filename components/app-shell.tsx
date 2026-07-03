@@ -112,7 +112,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </div>
 
           {/* Right: nav + theme toggle */}
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-2">
             {NAV.map(({ href, label, icon: Icon }) => {
               const active = pathname === href;
               return (
