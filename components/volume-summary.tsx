@@ -1,6 +1,6 @@
 'use client';
 
-import { BarChart2, DollarSign, TrendingUp, AlertTriangle, Wallet, Calendar, Activity, BarChart, ArrowUpRight, TrendingDown, Zap, Info } from 'lucide-react';
+import { BarChart2, DollarSign, TrendingUp, AlertTriangle, Wallet, Calendar, Activity, BarChart, ArrowUpRight, TrendingDown, Zap, Info, Hash } from 'lucide-react';
 import { StatsCard } from '@/components/stats-card';
 import { Summary, fmtIDRCompact, fmtUSDT, fmtNumber, fmtDateLabel, DailyAggregate } from '@/lib/data-utils';
 
@@ -364,25 +364,25 @@ export function VolumeSummary({ summary, dailyData, isLoading }: VolumeSummaryPr
                 variant="volume"
               />
               <StatsCard
-                label="Gross IDR"
-                value={fmtIDRCompact(summary.totalIDR)}
-                subValue={`Rp ${fmtNumber(summary.totalIDR)}`}
-                subLabel="Before deductions"
+                label="Total IDR Received"
+                value={fmtIDRCompact(summary.totalSettlement)}
+                subValue={`Rp ${fmtNumber(summary.totalSettlement)}`}
+                subLabel="All settlements"
                 icon={<DollarSign size={16} />}
                 variant="volume"
               />
               <StatsCard
-                label="Settlement IDR"
-                value={fmtIDRCompact(summary.totalSettlement)}
-                subValue={`Rp ${fmtNumber(summary.totalSettlement)}`}
-                subLabel="Actual received"
+                label="Avg Rate USDT/IDR"
+                value={fmtNumber(Math.round(summary.vwapRate))}
+                subValue={summary.vwapRate.toFixed(2)}
+                subLabel="Weighted average"
                 icon={<Activity size={16} />}
                 variant="neutral"
               />
               <StatsCard
                 label="Total Orders"
                 value={String(summary.totalTransactions)}
-                subValue={`${summary.activeDays} trading days`}
+                subValue={`${summary.activeDays} active days`}
                 subLabel="OTC sell orders"
                 icon={<BarChart size={16} />}
                 variant="default"
@@ -397,33 +397,33 @@ export function VolumeSummary({ summary, dailyData, isLoading }: VolumeSummaryPr
                 label="Total Net Profit"
                 value={fmtIDRCompact(summary.totalProfit)}
                 subValue={`Rp ${fmtNumber(summary.totalProfit)}`}
-                subLabel="All days combined"
+                subLabel="All days"
                 icon={<TrendingUp size={16} />}
                 variant="profit"
               />
               <StatsCard
-                label="Profit Margin"
-                value={`${profitMarginPct}%`}
-                subValue={`${summary.profitMarginBps.toFixed(0)} bps`}
-                subLabel="Profit / Gross IDR"
-                icon={<Wallet size={16} />}
-                variant="profit"
-              />
-              <StatsCard
-                label="Avg Profit / Day"
-                value={fmtIDRCompact(avgProfitPerDay)}
-                subValue={`Rp ${fmtNumber(avgProfitPerDay)}`}
-                subLabel="Per active trading day"
-                icon={<Calendar size={16} />}
-                variant="neutral"
-              />
-              <StatsCard
-                label="Non-Expected"
+                label="Non-Expected Costs"
                 value={summary.totalNonExpected > 0 ? fmtIDRCompact(summary.totalNonExpected) : '—'}
                 subValue={summary.totalNonExpected > 0 ? `Rp ${fmtNumber(summary.totalNonExpected)}` : 'None recorded'}
                 subLabel="Outside normal flow"
                 icon={<AlertTriangle size={16} />}
                 variant={summary.totalNonExpected > 0 ? 'loss' : 'default'}
+              />
+              <StatsCard
+                label="Trading Days"
+                value={String(summary.activeDays)}
+                subValue={`${summary.totalTransactions} total orders`}
+                subLabel="Active days"
+                icon={<Calendar size={16} />}
+                variant="neutral"
+              />
+              <StatsCard
+                label="Avg Profit / Day"
+                value={fmtIDRCompact(avgProfitPerDay)}
+                subValue={`Rp ${fmtNumber(avgProfitPerDay)}`}
+                subLabel="IDR per day"
+                icon={<Hash size={16} />}
+                variant="profit"
               />
             </div>
           </div>
