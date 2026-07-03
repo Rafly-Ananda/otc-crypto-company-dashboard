@@ -5,9 +5,10 @@ import { useRouter } from 'next/navigation';
 import { AppShell } from '@/components/app-shell';
 import { useData } from '@/components/data-provider';
 import { parseCSVData, Transaction } from '@/lib/data-utils';
+import { NewEntryForm } from '@/components/new-entry-form';
 import {
   Upload, FileText, AlertTriangle, CheckCircle2,
-  X, ChevronRight, RotateCcw, Info, CloudUpload, Cloud,
+  X, ChevronRight, RotateCcw, Info, CloudUpload, Cloud, Plus, Download,
 } from 'lucide-react';
 
 /* ── Expected columns ─────────────────────────────────────────────────────── */
@@ -120,6 +121,8 @@ export default function UploadPage() {
   const [preview, setPreview]       = useState<Transaction[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [sheetError, setSheetError] = useState<string | null>(null);
+  const [showEntry, setShowEntry]   = useState(false);
+  const [exporting, setExporting]   = useState(false);
 
   /* ── File processing ── */
   function processFile(file: File) {
@@ -213,6 +216,31 @@ export default function UploadPage() {
     if (inputRef.current) inputRef.current.value = '';
   }
 
+  /* ── Export CSV from sheet ── */
+  async function handleExport() {
+    setExporting(true);
+    try {
+      const res = await fetch('/api/sheet/export');
+      if (!res.ok) {
+        const data = await res.json();
+        alert(data.error ?? 'Export failed.');
+        return;
+      }
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      const date = new Date().toISOString().split('T')[0];
+      a.href = url;
+      a.download = `otc-crypto-${date}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      alert('Network error during export.');
+    } finally {
+      setExporting(false);
+    }
+  }
+
   /* ── UI ── */
   const dropZoneClass = [
     'relative flex flex-col items-center justify-center rounded-xl border-2 border-dashed px-8 py-16 transition-all duration-200 cursor-pointer select-none',
@@ -230,17 +258,42 @@ export default function UploadPage() {
       <main className="mx-auto w-full max-w-3xl flex-1 px-6 py-12 lg:px-10">
 
         {/* Page header */}
-        <div className="mb-10">
-          <p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-            Data Management
-          </p>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">
-            Upload CSV File
-          </h1>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Upload a transaction CSV in the OTC Crypto format. Data is stored in your browser session and used to populate the dashboard.
-          </p>
+        <div className="mb-10 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+              Data Management
+            </p>
+            <h1 className="text-2xl font-bold tracking-tight text-foreground">
+              Upload CSV File
+            </h1>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Upload a transaction CSV in the OTC Crypto format. Data is stored in your browser session and used to populate the dashboard.
+            </p>
+          </div>
+
+          {/* Sheet actions — only shown when Google Sheet is configured */}
+          {sheetConfigured && (
+            <div className="flex shrink-0 items-center gap-2">
+              <button
+                onClick={handleExport}
+                disabled={exporting}
+                className="flex cursor-pointer items-center gap-2 rounded-lg border border-border px-4 py-2 text-sm font-medium text-muted-foreground transition-colors hover:border-foreground/30 hover:text-foreground disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <Download size={14} />
+                {exporting ? 'Exporting...' : 'Export CSV'}
+              </button>
+              <button
+                onClick={() => setShowEntry(true)}
+                className="flex cursor-pointer items-center gap-2 rounded-lg bg-foreground px-4 py-2 text-sm font-semibold text-background transition-opacity hover:opacity-90"
+              >
+                <Plus size={14} />
+                New Entry
+              </button>
+            </div>
+          )}
         </div>
+
+        {showEntry && <NewEntryForm onClose={() => setShowEntry(false)} />}
 
         {/* Active file banner */}
         {source === 'uploaded' && fileName && state === 'idle' && (
@@ -254,7 +307,7 @@ export default function UploadPage() {
             </div>
             <button
               onClick={() => { resetToEmpty(); }}
-              className="flex items-center gap-1.5 rounded-md border border-border px-3 py-1.5 text-[11px] font-medium text-muted-foreground transition-colors hover:border-foreground/30 hover:text-foreground"
+              className="flex cursor-pointer items-center gap-1.5 rounded-md border border-border px-3 py-1.5 text-[11px] font-medium text-muted-foreground transition-colors hover:border-foreground/30 hover:text-foreground"
             >
               <RotateCcw size={11} />
               Clear data
@@ -333,7 +386,7 @@ export default function UploadPage() {
               </div>
               <button
                 onClick={handleReset}
-                className="flex items-center gap-1 rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-foreground/10 hover:text-foreground"
+                className="flex cursor-pointer items-center gap-1 rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-foreground/10 hover:text-foreground"
                 aria-label="Remove file"
               >
                 <X size={14} />
@@ -390,7 +443,7 @@ export default function UploadPage() {
               <button
                 onClick={handleConfirm}
                 disabled={submitting}
-                className="flex items-center gap-2 rounded-lg bg-foreground px-5 py-2.5 text-sm font-semibold text-background transition-opacity hover:opacity-90 disabled:opacity-50"
+                className="flex cursor-pointer items-center gap-2 rounded-lg bg-foreground px-5 py-2.5 text-sm font-semibold text-background transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {submitting ? 'Saving...' : sheetConfigured ? 'Save to Sheet & Dashboard' : 'Load into Dashboard'}
                 {!submitting && <ChevronRight size={15} />}
@@ -398,7 +451,7 @@ export default function UploadPage() {
               <button
                 onClick={handleReset}
                 disabled={submitting}
-                className="rounded-lg border border-border px-5 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:border-foreground/30 hover:text-foreground disabled:opacity-50"
+                className="cursor-pointer rounded-lg border border-border px-5 py-2.5 text-sm font-medium text-muted-foreground transition-colors hover:border-foreground/30 hover:text-foreground disabled:cursor-not-allowed disabled:opacity-50"
               >
                 Cancel
               </button>

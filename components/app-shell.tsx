@@ -32,6 +32,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const { summary, source, fileName, lastSynced, isSyncing, sheetConfigured } = useData();
   const showSyncedFlash = useSyncedFlash(lastSynced);
 
+
   return (
     <div className="flex min-h-screen flex-col bg-background grid-bg">
 

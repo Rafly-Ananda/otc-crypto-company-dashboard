@@ -51,9 +51,9 @@ export function HeroKpi({ summary, isLoading }: HeroKpiProps) {
       accent: 'volume',
     },
     {
-      label: 'Gross IDR Value',
-      value: fmtIDRCompact(summary.totalIDR),
-      sub: `Settlement: ${fmtIDRCompact(summary.totalSettlement)}`,
+      label: 'Total IDR Received',
+      value: fmtIDRCompact(summary.totalSettlement),
+      sub: `Gross IDR: ${fmtIDRCompact(summary.totalIDR)}`,
       accent: 'neutral',
     },
     {
